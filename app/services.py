@@ -9,8 +9,10 @@ from newspaper import Article
 from groq import Groq
 
 
+
+
 def fetch_and_store_crypto_data(db: Session):
-    """Fetches Top 20 coins from CoinGecko and saves them to PostgreSQL."""
+    """Fetches Top 20 coins from CoinGecko and upserts them to PostgreSQL."""
     
     url = "https://api.coingecko.com/api/v3/coins/markets"
     params = {
@@ -31,27 +33,37 @@ def fetch_and_store_crypto_data(db: Session):
     print(f"Success! Fetched {len(data)} coins. Updating Render database...")
     
 
-    for coin in data:
+    existing_coins = {coin.symbol: coin for coin in db.query(CryptoPrice).all()}
 
-        new_entry = CryptoPrice(
-            rank=coin.get('market_cap_rank', 0),
-            name=coin.get('name', ''),
-            symbol=coin['symbol'].upper(),
-            image_url=coin.get('image', ''),
-            price_usd=coin.get('current_price', 0.0),
-            change_24h=coin.get('price_change_percentage_24h', 0.0),
-            market_cap=coin.get('market_cap', 0.0),
-            total_volume=coin.get('total_volume', 0.0),
-            high_24h=coin.get('high_24h', 0.0),
-            low_24h=coin.get('low_24h', 0.0),
-            ath_change_percentage=coin.get('ath_change_percentage', 0.0)
-            # last_updated is handled by models.py default
-        )
-        db.add(new_entry)
+    for coin in data:
+        symbol = coin['symbol'].upper()
+        
+        fresh_data = {
+            "rank": coin.get('market_cap_rank', 0),
+            "name": coin.get('name', ''),
+            "image_url": coin.get('image', ''),
+            "price_usd": coin.get('current_price', 0.0),
+            "change_24h": coin.get('price_change_percentage_24h', 0.0),
+            "market_cap": coin.get('market_cap', 0.0),
+            "total_volume": coin.get('total_volume', 0.0),
+            "high_24h": coin.get('high_24h', 0.0),
+            "low_24h": coin.get('low_24h', 0.0),
+            "ath_change_percentage": coin.get('ath_change_percentage', 0.0),
+            "last_updated": datetime.utcnow()
+        }
+
+        if symbol in existing_coins:
+
+            existing_record = existing_coins[symbol]
+            for key, value in fresh_data.items():
+                setattr(existing_record, key, value)
+        else:
+   
+            new_entry = CryptoPrice(symbol=symbol, **fresh_data)
+            db.add(new_entry)
             
     db.commit()
-    return {"message": "Daily snapshot recorded successfully."}
-
+    return {"message": "Market snapshot synchronized successfully."}
 
 def get_live_news_analysis():
     """
