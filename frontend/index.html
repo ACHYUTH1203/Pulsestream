@@ -20,7 +20,7 @@
             <div class="flex justify-between items-end mb-4">
                 <h2 class="text-2xl font-bold text-white"> Liquidity Matrix (Top 20)</h2>
                 <button id="refreshCryptoBtn" onclick="loadCryptoData()" class="text-sm text-blue-400 hover:text-blue-300 transition flex items-center gap-1">
-                    ↻ Force Live Sync
+                    ↻ Live Sync
                 </button>
             </div>
             
@@ -68,6 +68,14 @@
                 const grid = document.getElementById('cryptoGrid');
                 grid.innerHTML = ''; // Clear loading text
 
+                // Formatter for large numbers (e.g. 1.34T, 85B)
+                const formatLargeNumber = (num) => {
+                    if (num >= 1e12) return '$' + (num / 1e12).toFixed(2) + 'T';
+                    if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
+                    if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + 'M';
+                    return '$' + num.toLocaleString();
+                };
+
                 data.forEach(coin => {
                     // 1. Calculate Volatility & Colors
                     const isPositive = coin.change_24h >= 0;
@@ -80,16 +88,11 @@
                     const liqBadge = liquidityRatio > 5.0 ? '💧 High' : liquidityRatio > 2.0 ? '⚖️ Med' : '⚠️ Low';
                     const liqColor = liquidityRatio > 5.0 ? 'text-blue-400' : liquidityRatio > 2.0 ? 'text-yellow-400' : 'text-orange-500';
 
-                    // 3. Calculate 24h Range Percent (Where the dot sits)
-                    let rangePercent = 50; 
-                    if (coin.high_24h && coin.low_24h && coin.high_24h > coin.low_24h) {
-                        rangePercent = ((coin.price_usd - coin.low_24h) / (coin.high_24h - coin.low_24h)) * 100;
-                    }
-                    
-                    // 4. Calculate ATH Drop Color
+                    // 3. Formatter Logic
                     const athColor = coin.ath_change_percentage < -50 ? 'text-red-500' : 'text-gray-400';
-                
-                    // 5. Build the Enhanced Card 
+                    const formattedCap = formatLargeNumber(coin.market_cap);
+
+                    // 4. Build the Ultimate Executive Card
                     grid.innerHTML += `
                         <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md hover:border-gray-600 transition flex flex-col gap-3">
                             
@@ -106,20 +109,28 @@
 
                             <hr class="border-gray-800">
 
-                            <div class="mt-1">
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-gray-400">24h Vol / M.Cap</span>
-                                    <span class="font-bold ${liqColor}">${liqBadge} (${liquidityRatio}%)</span>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">Market Cap</p>
+                                    <p class="text-sm text-gray-300 font-mono">${formattedCap}</p>
                                 </div>
-                                <div class="w-full bg-gray-800 rounded-full h-1">
-                                    <div class="bg-blue-500 h-1 rounded-full" style="width: ${Math.min(liquidityRatio * 10, 100)}%"></div>
+                                <div class="text-right">
+                                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">Vol / M.Cap</p>
+                                    <p class="text-sm font-bold ${liqColor}">${liqBadge} <span class="text-gray-400 font-normal text-xs">(${liquidityRatio}%)</span></p>
                                 </div>
                             </div>
 
-                            <div class="flex justify-between text-xs mt-1">
-                                <span class="text-gray-400">Drop from ATH</span>
-                                <span class="${athColor} font-mono font-medium">${coin.ath_change_percentage ? coin.ath_change_percentage.toFixed(1) + '%' : 'N/A'}</span>
+                            <div class="bg-gray-950 rounded-lg p-2 mt-1 border border-gray-800 flex justify-between">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-gray-500">24h Spread</span>
+                                    <span class="text-xs text-gray-400 font-mono">${coin.low_24h ? '$'+coin.low_24h.toLocaleString(undefined, {maximumFractionDigits:0}) : 'N/A'} - ${coin.high_24h ? '$'+coin.high_24h.toLocaleString(undefined, {maximumFractionDigits:0}) : 'N/A'}</span>
+                                </div>
+                                <div class="flex flex-col text-right">
+                                    <span class="text-[10px] text-gray-500">ATH Drop</span>
+                                    <span class="text-xs font-mono font-medium ${athColor}">${coin.ath_change_percentage ? coin.ath_change_percentage.toFixed(2) + '%' : 'N/A'}</span>
+                                </div>
                             </div>
+
                         </div>
                     `;
                 });
