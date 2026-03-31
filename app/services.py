@@ -11,8 +11,10 @@ from groq import Groq
 
 
 
+
+
 def fetch_and_store_crypto_data(db: Session):
-    """Fetches Top 20 coins from CoinGecko and upserts them to PostgreSQL."""
+    """Fetches Top 20 coins from CoinGecko, cleans duplicates, and upserts to PostgreSQL."""
     
     url = "https://api.coingecko.com/api/v3/coins/markets"
     params = {
@@ -31,7 +33,18 @@ def fetch_and_store_crypto_data(db: Session):
         
     data = response.json()
     print(f"Success! Fetched {len(data)} coins. Updating Render database...")
+
+    all_records = db.query(CryptoPrice).all()
+    valid_symbols = set()
     
+    for record in all_records:
+        # If the row is missing data (N/A) OR we already have a row for this symbol (Duplicate)
+        if record.high_24h is None or record.symbol in valid_symbols:
+            db.delete(record)
+        else:
+            valid_symbols.add(record.symbol)
+            
+    db.commit() # Save the cleaned-up database
 
     existing_coins = {coin.symbol: coin for coin in db.query(CryptoPrice).all()}
 
@@ -53,17 +66,17 @@ def fetch_and_store_crypto_data(db: Session):
         }
 
         if symbol in existing_coins:
-
+            # Update existing pristine row
             existing_record = existing_coins[symbol]
             for key, value in fresh_data.items():
                 setattr(existing_record, key, value)
         else:
-   
+            # Insert brand new coin
             new_entry = CryptoPrice(symbol=symbol, **fresh_data)
             db.add(new_entry)
             
     db.commit()
-    return {"message": "Market snapshot synchronized successfully."}
+    return {"message": "Market snapshot synchronized and cleaned successfully."}
 
 def get_live_news_analysis():
     """
