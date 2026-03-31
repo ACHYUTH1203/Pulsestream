@@ -15,3 +15,6 @@ class CryptoPrice(Base):
     market_cap = Column(Float)
     total_volume = Column(Float) 
     last_updated = Column(DateTime, default=datetime.utcnow)
+    high_24h = Column(Float, nullable=True)
+    low_24h = Column(Float, nullable=True)
+    ath_change_percentage = Column(Float, nullable=True)

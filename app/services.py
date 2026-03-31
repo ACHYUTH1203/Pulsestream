@@ -42,6 +42,9 @@ def fetch_and_store_crypto_data(db: Session):
             change_24h=coin.get('price_change_percentage_24h', 0.0),
             market_cap=coin.get('market_cap', 0.0),
             total_volume=coin.get('total_volume', 0.0)
+            high_24h=coin.get('high_24h', 0.0),
+            low_24h=coin.get('low_24h', 0.0),
+            ath_change_percentage=coin.get('ath_change_percentage', 0.0)
             # last_updated is handled by models.py default
         )
         db.add(new_entry)

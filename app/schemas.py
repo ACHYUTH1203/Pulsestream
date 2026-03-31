@@ -11,6 +11,9 @@ class CryptoPriceResponse(BaseModel):
     change_24h: float
     market_cap: float
     total_volume: float
+    high_24h: Optional[float] = None
+    low_24h: Optional[float] = None
+    ath_change_percentage: Optional[float] = None
     last_updated: datetime
 
     class Config:
