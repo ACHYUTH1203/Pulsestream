@@ -61,7 +61,7 @@ def get_live_news_analysis():
     print("PulseStream News Engine: Production Analysis Mode")
     
 
-    google_news = GNews(language='en', period='1d', max_results=5)
+    google_news = GNews(language='en', period='1d', max_results=6)
     items = google_news.get_news('Cryptocurrency OR Bitcoin OR Ethereum')
     
     analyzed_news = []
