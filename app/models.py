@@ -8,7 +8,7 @@ class CryptoPrice(Base):
     id = Column(Integer, primary_key=True, index=True)
     rank = Column(Integer)
     name = Column(String, index=True)
-    symbol = Column(String, index=True)
+    symbol = Column(String, index=True, unique=True) 
     image_url = Column(String)  
     price_usd = Column(Float)
     change_24h = Column(Float)
