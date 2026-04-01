@@ -34,17 +34,16 @@ def fetch_and_store_crypto_data(db: Session):
     data = response.json()
     print(f"Success! Fetched {len(data)} coins. Updating Render database...")
 
+    new_top_20_symbols = {coin['symbol'].upper() for coin in data}
+
     all_records = db.query(CryptoPrice).all()
-    valid_symbols = set()
-    
+
     for record in all_records:
-        # If the row is missing data (N/A) OR we already have a row for this symbol (Duplicate)
-        if record.high_24h is None or record.symbol in valid_symbols:
+        if record.symbol not in new_top_20_symbols:
             db.delete(record)
-        else:
-            valid_symbols.add(record.symbol)
-            
-    db.commit() # Save the cleaned-up database
+        
+    db.commit()
+
 
     existing_coins = {coin.symbol: coin for coin in db.query(CryptoPrice).all()}
 

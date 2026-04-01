@@ -76,7 +76,7 @@ def get_prices(db: Session = Depends(get_db)):
     Retrieves the stored Top 20 cryptocurrencies from the database, 
     ordered by their market cap rank.
     """
-    prices = db.query(models.CryptoPrice).order_by(models.CryptoPrice.rank).all()
+    prices = db.query(models.CryptoPrice).order_by(models.CryptoPrice.rank).limit(20).all()
     return prices
 
 @app.get("/api/live-news", summary="Get real-time AI analyzed news (Not stored in DB)")
