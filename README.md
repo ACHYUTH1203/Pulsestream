@@ -1,6 +1,7 @@
 PulseStream Intelligence
 ========================
 
+🔗 **Live Link:** [https://pulsestream-tbpc.onrender.com/](https://pulsestream-tbpc.onrender.com/)
 **Real-Time Crypto Market & Sentiment Radar**
 
 PulseStream is a full-stack, AI-powered web dashboard that tracks the top 20 cryptocurrencies and provides real-time market sentiment analysis. It leverages the CoinGecko API for live market data and utilizes Llama 3.1 (via Groq) to scrape, summarize, and analyze the sentiment of the latest cryptocurrency news headlines.
